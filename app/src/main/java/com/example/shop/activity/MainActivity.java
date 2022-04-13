@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
@@ -18,36 +19,92 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.Toast;
 import android.widget.ViewFlipper;
 import android.window.SplashScreen;
 
 import com.bumptech.glide.Glide;
 import com.example.shop.R;
 import com.example.shop.adapter.LoaiSpAdapter;
+import com.example.shop.adapter.SanPhamMoiAdapter;
 import com.example.shop.model.Loaisp;
+import com.example.shop.model.SanPhamMoi;
+import com.example.shop.model.SanPhamMoiModel;
+import com.example.shop.retrofit.ApiBanHang;
+import com.example.shop.retrofit.RetrofitClient;
+import com.example.shop.utils.Utils;
 import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+
 public class MainActivity extends AppCompatActivity {
 
     Toolbar toolbar;
     ViewFlipper viewFlipper;
-    RecyclerView recyclerView;
+    RecyclerView recyclerViewManHinhChinh;
     NavigationView navigationView;
     ListView listviewmanhinhchinh;
     DrawerLayout drawerLayout;
     LoaiSpAdapter loaiSpAdapter;
     List<Loaisp> mangLoaisps;
+    CompositeDisposable compositeDisposable = new CompositeDisposable();
+    ApiBanHang apiBanHang;
+    List<SanPhamMoi> mangSpMoi;
+    SanPhamMoiAdapter spAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        apiBanHang = RetrofitClient.getInstance(Utils.Base_URL).create(ApiBanHang.class);
         AnhXa();
         ActionBar();
-        ActionViewFlipper();
+        if(isConnected(this)){
+            ActionViewFlipper();
+            getLoaiSanPham();
+            getSpMoi();
+        }else{
+            Toast.makeText(getApplicationContext(),"không có internet,vui lòng kết nối",Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void getSpMoi() {
+        compositeDisposable.add(apiBanHang.getSpMoi()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        sanPhamMoiModel -> {
+                            if(sanPhamMoiModel.isSuccess()){
+                                mangSpMoi = sanPhamMoiModel.getResult();
+                                spAdapter = new SanPhamMoiAdapter(getApplicationContext(),mangSpMoi);
+                                recyclerViewManHinhChinh.setAdapter(spAdapter);
+                            }
+                        },
+                        throwable -> {
+                            Toast.makeText(getApplicationContext(),"không kết nối được sever"+throwable.getMessage(),Toast.LENGTH_LONG).show();
+                        }
+                ));
+    }
+
+    private void getLoaiSanPham() {
+        compositeDisposable.add(apiBanHang.getLoaiSP()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        loaiSpModel -> {
+                            if(loaiSpModel.isSuccess()){
+                                mangLoaisps = loaiSpModel.getResult();
+                                loaiSpAdapter = new LoaiSpAdapter(getApplicationContext(),mangLoaisps);
+                                listviewmanhinhchinh.setAdapter(loaiSpAdapter);
+                            }
+                        }
+                ));
     }
 
     private void ActionViewFlipper() {
@@ -98,17 +155,20 @@ public class MainActivity extends AppCompatActivity {
     private void AnhXa(){
         toolbar = findViewById(R.id.toolbarmanhinhchinh);
         viewFlipper = findViewById(R.id.viewflipper);
-        recyclerView = findViewById(R.id.recyclerview);
+        recyclerViewManHinhChinh = findViewById(R.id.recyclerview);
+
+        RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this,2);
+        recyclerViewManHinhChinh.setLayoutManager(layoutManager);
+        recyclerViewManHinhChinh.setHasFixedSize(true);
+
         listviewmanhinhchinh = findViewById(R.id.listviewmanhinhchinh);
         navigationView = findViewById(R.id.navigationview);
         drawerLayout = findViewById(R.id.drawerlayout);
 
         //khoi tao list
         mangLoaisps = new ArrayList<>();
+        mangSpMoi = new ArrayList<>();
 
-        // khởi tạo adapter
-        loaiSpAdapter = new LoaiSpAdapter(getApplicationContext(),mangLoaisps);
-        listviewmanhinhchinh.setAdapter(loaiSpAdapter);
     }
 
     private boolean isConnected(Context context)
@@ -121,5 +181,11 @@ public class MainActivity extends AppCompatActivity {
         }else{
             return false;
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        compositeDisposable.clear();
+        super.onDestroy();
     }
 }

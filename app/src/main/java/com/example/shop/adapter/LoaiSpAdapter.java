@@ -56,9 +56,9 @@ public class LoaiSpAdapter extends BaseAdapter {
             view.setTag(viewholder);
         }else{
             viewholder = (Viewholder) view.getTag();
-            viewholder.product_name.setTag(array.get(i).getProduct_name());
-            Glide.with(context).load(array.get(i).getImages()).into(viewholder.images);
         }
+        viewholder.product_name.setText(array.get(i).getProduct_name());
+        Glide.with(context).load(array.get(i).getImages()).into(viewholder.images);
         return view;
     }
 }
