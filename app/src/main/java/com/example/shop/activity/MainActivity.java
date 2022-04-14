@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -35,6 +36,7 @@ import com.example.shop.retrofit.RetrofitClient;
 import com.example.shop.utils.Utils;
 import com.google.android.material.navigation.NavigationView;
 
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,9 +71,34 @@ public class MainActivity extends AppCompatActivity {
             ActionViewFlipper();
             getLoaiSanPham();
             getSpMoi();
+            getEventClick();
         }else{
             Toast.makeText(getApplicationContext(),"không có internet,vui lòng kết nối",Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void getEventClick() {
+        listviewmanhinhchinh.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+              switch (i){
+                  case 0:
+                      Intent trangchu = new Intent(getApplicationContext(),MainActivity.class);
+                      startActivity(trangchu);
+                      break;
+                  case  1:
+                      Intent dienthoai = new Intent(getApplicationContext(),DienThoaiActivity.class);
+                      dienthoai.putExtra("loai",1);
+                      startActivity(dienthoai);
+                      break;
+                  case  2:
+                      Intent laptop = new Intent(getApplicationContext(),DienThoaiActivity.class);
+                      laptop.putExtra("loai",2);
+                      startActivity(laptop);
+                      break;
+              }
+            }
+        });
     }
 
     private void getSpMoi() {
