@@ -1,4 +1,4 @@
-package com.example.shop;
+package com.manager.shop;
 
 import org.junit.Test;
 

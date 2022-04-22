@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">shop</string>
+    <string name="app_name">App Quản Lí</string>
+    <string name="ng_nh_p">Đăng nhập</string>
 </resources>

@@ -1,9 +1,14 @@
-package com.example.shop.model;
+package com.manager.shop.model;
 
 public class Loaisp {
     int id;
     String  product_name;
     String images;
+
+    public Loaisp(String product_name, String images) {
+        this.product_name = product_name;
+        this.images = images;
+    }
 
     public int getId() {
         return id;

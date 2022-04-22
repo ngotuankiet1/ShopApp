@@ -1,4 +1,4 @@
-package com.example.shop.adapter;
+package com.manager.shop.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -9,8 +9,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.example.shop.R;
-import com.example.shop.model.Loaisp;
+import com.manager.shop.R;
+import com.manager.shop.model.Loaisp;
 
 import java.util.List;
 

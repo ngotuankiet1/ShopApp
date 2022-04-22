@@ -1,4 +1,4 @@
-package com.example.shop.activity;
+package com.manager.shop.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -12,36 +12,34 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
-import android.window.SplashScreen;
 
 import com.bumptech.glide.Glide;
-import com.example.shop.R;
-import com.example.shop.adapter.LoaiSpAdapter;
-import com.example.shop.adapter.SanPhamMoiAdapter;
-import com.example.shop.model.Loaisp;
-import com.example.shop.model.SanPhamMoi;
-import com.example.shop.model.SanPhamMoiModel;
-import com.example.shop.retrofit.ApiBanHang;
-import com.example.shop.retrofit.RetrofitClient;
-import com.example.shop.utils.Utils;
+import com.manager.shop.R;
+import com.manager.shop.adapter.LoaiSpAdapter;
+import com.manager.shop.adapter.SanPhamMoiAdapter;
+import com.manager.shop.model.Loaisp;
+import com.manager.shop.model.SanPhamMoi;
+import com.manager.shop.model.User;
+import com.manager.shop.retrofit.ApiBanHang;
+import com.manager.shop.retrofit.RetrofitClient;
+import com.manager.shop.utils.Utils;
 import com.google.android.material.navigation.NavigationView;
+import com.nex3z.notificationbadge.NotificationBadge;
 
-import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.paperdb.Paper;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
@@ -59,12 +57,20 @@ public class MainActivity extends AppCompatActivity {
     ApiBanHang apiBanHang;
     List<SanPhamMoi> mangSpMoi;
     SanPhamMoiAdapter spAdapter;
+    NotificationBadge badge;
+    FrameLayout frameLayout;
+    ImageView imgsearch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         apiBanHang = RetrofitClient.getInstance(Utils.Base_URL).create(ApiBanHang.class);
+        Paper.init(this);
+        if(Paper.book().read("user") != null){
+            User user = Paper.book().read("user");
+            Utils.user_current = user;
+        }
         AnhXa();
         ActionBar();
         if(isConnected(this)){
@@ -95,6 +101,20 @@ public class MainActivity extends AppCompatActivity {
                       Intent laptop = new Intent(getApplicationContext(),DienThoaiActivity.class);
                       laptop.putExtra("loai",2);
                       startActivity(laptop);
+                      break;
+                  case  5:
+                      Intent donhang = new Intent(getApplicationContext(),XemDonActivity.class);
+                      startActivity(donhang);
+                      break;
+                  case 6:
+                      Intent quanli = new Intent(getApplicationContext(),QuanLiActivity.class);
+                      startActivity(quanli);
+                      break;
+                  case 7:
+                      Paper.book().delete("user");
+                      Intent dangnhap = new Intent(getApplicationContext(),DangNhapActivity.class);
+                      startActivity(dangnhap);
+                      finish();
                       break;
               }
             }
@@ -127,6 +147,8 @@ public class MainActivity extends AppCompatActivity {
                         loaiSpModel -> {
                             if(loaiSpModel.isSuccess()){
                                 mangLoaisps = loaiSpModel.getResult();
+                                mangLoaisps.add(new Loaisp("Quản lí","https://png.pngtree.com/png-vector/20190301/ourlarge/pngtree-vector-administration-icon-png-image_747092.jpg"));
+                                mangLoaisps.add(new Loaisp("Đăng xuất","https://iconarchive.com/download/i104161/custom-icon-design/flatastic-9/Logout.ico"));
                                 loaiSpAdapter = new LoaiSpAdapter(getApplicationContext(),mangLoaisps);
                                 listviewmanhinhchinh.setAdapter(loaiSpAdapter);
                             }
@@ -183,6 +205,7 @@ public class MainActivity extends AppCompatActivity {
         toolbar = findViewById(R.id.toolbarmanhinhchinh);
         viewFlipper = findViewById(R.id.viewflipper);
         recyclerViewManHinhChinh = findViewById(R.id.recyclerview);
+        imgsearch = findViewById(R.id.imgsearch);
 
         RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this,2);
         recyclerViewManHinhChinh.setLayoutManager(layoutManager);
@@ -191,11 +214,48 @@ public class MainActivity extends AppCompatActivity {
         listviewmanhinhchinh = findViewById(R.id.listviewmanhinhchinh);
         navigationView = findViewById(R.id.navigationview);
         drawerLayout = findViewById(R.id.drawerlayout);
+        badge = findViewById(R.id.menu_sl);
 
+        frameLayout = findViewById(R.id.framegiohang);
         //khoi tao list
         mangLoaisps = new ArrayList<>();
         mangSpMoi = new ArrayList<>();
+        if(Utils.manggiohang == null){
+            Utils.manggiohang = new ArrayList<>();
+        }else {
+            int totalItem = 0;
+            for(int i = 0; i<Utils.manggiohang.size(); i++){
+                totalItem = totalItem + Utils.manggiohang.get(i).getSoluong();
+            }
+            badge.setText(String.valueOf(totalItem));
+        }
+        frameLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent giohang = new Intent(getApplicationContext(),GioHangActivity.class);
+                startActivity(giohang);
+            }
+        });
 
+        imgsearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(),SearchActivity.class);
+                startActivity(intent);
+            }
+        });
+
+
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        int totalItem = 0;
+        for(int i = 0; i<Utils.manggiohang.size(); i++){
+            totalItem = totalItem + Utils.manggiohang.get(i).getSoluong();
+        }
+        badge.setText(String.valueOf(totalItem));
     }
 
     private boolean isConnected(Context context)
