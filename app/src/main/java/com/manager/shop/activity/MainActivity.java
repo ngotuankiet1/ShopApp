@@ -12,6 +12,8 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -23,6 +25,9 @@ import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.manager.shop.R;
 import com.manager.shop.adapter.LoaiSpAdapter;
 import com.manager.shop.adapter.SanPhamMoiAdapter;
@@ -71,8 +76,10 @@ public class MainActivity extends AppCompatActivity {
             User user = Paper.book().read("user");
             Utils.user_current = user;
         }
+        getToken();
         AnhXa();
         ActionBar();
+
         if(isConnected(this)){
             ActionViewFlipper();
             getLoaiSanPham();
@@ -81,6 +88,28 @@ public class MainActivity extends AppCompatActivity {
         }else{
             Toast.makeText(getApplicationContext(),"không có internet,vui lòng kết nối",Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void getToken(){
+        FirebaseMessaging.getInstance().getToken()
+                .addOnSuccessListener(new OnSuccessListener<String>() {
+                    @Override
+                    public void onSuccess(String s) {
+                        if(!TextUtils.isEmpty(s)){
+                            compositeDisposable.add(apiBanHang.updateToken(Utils.user_current.getId(),s)
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(
+                               messageModel -> {
+
+                               },
+                               throwable -> {
+                                   Log.d("log",throwable.getMessage());
+                               }
+                            ));
+                        }
+                    }
+                });
     }
 
     private void getEventClick() {
@@ -112,6 +141,7 @@ public class MainActivity extends AppCompatActivity {
                       break;
                   case 7:
                       Paper.book().delete("user");
+                      FirebaseAuth.getInstance().signOut();
                       Intent dangnhap = new Intent(getApplicationContext(),DangNhapActivity.class);
                       startActivity(dangnhap);
                       finish();

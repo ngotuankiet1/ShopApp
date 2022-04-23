@@ -39,9 +39,11 @@
         <entry key="..\:/android studio/shopmanager/app/src/main/res/drawable/ic_baseline_attach_money_24.xml" value="0.1" />
         <entry key="..\:/android studio/shopmanager/app/src/main/res/drawable/ic_baseline_create_24.xml" value="0.1" />
         <entry key="..\:/android studio/shopmanager/app/src/main/res/drawable/ic_baseline_drag_handle_24.xml" value="0.1" />
+        <entry key="..\:/android studio/shopmanager/app/src/main/res/layout/activity_dang_ki.xml" value="0.1398148148148148" />
         <entry key="..\:/android studio/shopmanager/app/src/main/res/layout/activity_dien_thoai.xml" value="0.13994439295644115" />
         <entry key="..\:/android studio/shopmanager/app/src/main/res/layout/activity_quan_li.xml" value="0.19010416666666666" />
         <entry key="..\:/android studio/shopmanager/app/src/main/res/layout/activity_themsp.xml" value="0.20416666666666666" />
+        <entry key="..\:/android studio/shopmanager/app/src/main/res/layout/notification.xml" value="0.20416666666666666" />
       </map>
     </option>
   </component>
